@@ -23,8 +23,6 @@ class Line {
 
     if (this.points.indexOf(coords) >= 0) return;
 
-    console.log(col, row);
-
     // prevent diagonal movement
     if (this.points.length > 0) {
       const lastCoord = this.points[this.points.length - 1];
@@ -55,7 +53,6 @@ class Line {
       const hasTurned = [turnRight, turnLeft];
 
       // if (hasTurned.indexOf(coords) < 0);
-      console.log(hasTurned);
     }
 
     this.points.push(coords);
@@ -81,3 +78,5 @@ class Line {
     pop();
   }
 }
+
+
