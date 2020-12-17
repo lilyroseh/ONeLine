@@ -1,4 +1,5 @@
 let GRID = new Grid();
+let FIREBASE_DIRECTORY = "ONELINE/";
 
 const map1 = [
   [1, 1, 1],
@@ -7,30 +8,82 @@ const map1 = [
 ];
 
 const CELLS = {};
-let LINE = new Line();
+let LINE;
+let GUESS_POINTS = [];
 
-const urlParameter = new URLSearchParams(window.location.search);
-this.ID = urlParameter.get("player");
+let IS_PLAYER1 = false;
+let IS_DRAWER = false;
+let CURR_LEVEL = 0;
+let READY_TO_PLAY = false;
 
 function setup() {
+  LINE = new Line();
   createCanvas(windowWidth, windowHeight);
-  //   mapGRID(map1);
-  GRID.buildGRID(4, 3);
-  this.appHasStarted = false;
 
-  DATABASE.ref("PONG_LILODIE/ONELINE").on(
-    "value",
-    this.onValueChanged.bind(this)
-  );
+  let player1Btn = createButton("Player 1");
+  let player2Btn = createButton("Player 2");
+  player1Btn.position(windowWidth * 0.33);
+  player2Btn.position(windowWidth * 0.66);
+
+  player1Btn.mousePressed(() => {
+    IS_PLAYER1 = true;
+    player2Btn.hide();
+    SEND_MESSAGE("players/player1/ready", true);
+  });
+
+  player2Btn.mousePressed(() => {
+    player1Btn.hide();
+    SEND_MESSAGE("players/player2/ready", true);
+  });
+
+  LISTEN("players", (data) => {
+    if (data.player1.ready) player1Btn.hide();
+
+    if (data.player2.ready) player2Btn.hide();
+
+    if (data.player1.ready && data.player2.ready && IS_PLAYER1) {
+      SEND_MESSAGE("level/drawer", "player1");
+      SEND_MESSAGE("level/number", CURR_LEVEL);
+    }
+  });
+
+  LISTEN("level", (data) => {
+    if (data.number !== false) {
+      GRID.buildGRID(4, 3);
+      READY_TO_PLAY = true;
+      // console.log("READY TO PLAY");
+    }
+
+    if(IS_PLAYER1 && data.drawer === "player1") {
+      IS_DRAWER = true;
+    }
+  });
+
+  LISTEN("line", (data) => {
+
+    if(!READY_TO_PLAY)
+      return;
+
+    if(!IS_DRAWER)
+      GUESS_POINTS = data.points;
+  });
+  // //   mapGRID(map1);
+  // GRID.buildGRID(4, 3);
+  // this.appHasStarted = false;
 }
 
-
-
+window.addEventListener("beforeunload", function (event) {
+  // event.returnValue="";
+  SEND_MESSAGE("players/player1/ready", false);
+  SEND_MESSAGE("level/number", false);
+  SEND_MESSAGE("players/player2/ready", false);
+});
 
 function draw() {
+  if (!READY_TO_PLAY) return;
+
   background(222, 235, 235);
   noStroke();
-  
 
   for (let [coords, cell] of Object.entries(CELLS)) {
     cell.display();
@@ -43,19 +96,25 @@ function draw() {
   fill("rgba(255, 255, 255, 0.1)");
 
   if (cell) cell.display();
-
-
 }
 
 function mousePressed() {
+  if (!READY_TO_PLAY || !IS_DRAWER) return;
+
   LINE.tryAddPoint(mouseX, mouseY);
+  SEND_MESSAGE("line/points", LINE.points);
+  
 }
 
 function mouseDragged() {
+  if (!READY_TO_PLAY || !IS_DRAWER) return;
+
   LINE.tryAddPoint(mouseX, mouseY);
+  SEND_MESSAGE("line/points", LINE.points);
 }
 
 function mouseReleased() {
+  if (!READY_TO_PLAY || !IS_DRAWER) return;
   //   if (LINE.points.length === getNDotCells()) {
   //     console.log("YOU WON");
   //     LINE.fadeOut();
@@ -75,29 +134,20 @@ function fadeOut() {
   for (let [coords, cell] of Object.entries(CELLS)) {
     if (LINE.points.indexOf(coords) < 0) {
       cell.state = "empty";
-
     }
-    console.log(coords, cell);
-    console.log(LINE.points.indexOf(coords));
 
-    if (LINE.points.indexOf(coords) == 0 ){
+    if (LINE.points.indexOf(coords) == 0) {
       cell.state = "start";
     }
-    if (LINE.points.indexOf(coords) == LINE.points.length -1){
+    if (LINE.points.indexOf(coords) == LINE.points.length - 1) {
       cell.state = "finish";
     }
     // draw state "turn"
-     if (LINE.points.indexOf(coords) == LINE.points.hasTurned) {
+    if (LINE.points.indexOf(coords) == LINE.points.hasTurned) {
       cell.state = "turn";
-      console.log(LINE.points.hasTurned);
+
     }
   }
-
- 
-
-  
-
-  
 
   LINE.empty();
 }
@@ -106,8 +156,8 @@ function getTheGrid(data) {
   if (this.ID != data.id) {
     this.GRID.nColumns = data.nColumns;
     this.GRID.nRows = data.nRows;
-    
-  fadeOut();
+
+    fadeOut();
     //console.log("ball Y" + this.ball.y + " ball speedX " + this.ball.speedX);
 
     if (this.ID == 1) {
@@ -115,17 +165,30 @@ function getTheGrid(data) {
     } else if (this.ID == 2) {
       this.GRID.nRows = 0;
     }
-  }  
+  }
 }
 
 function onValueChanged(snapshot) {
-    
   if (!this.appHasStarted) {
     this.appHasStarted = true;
     this.draw();
-  }else{
-    this.getTheGrid(snapshot.val());
+    let database = snapshot.val();
+    console.log(database);
+  } else {
+    let database = snapshot.val();
+    console.log(database);
+    this.getTheGrid(database);
     //console.log("snapshot", snapshot.val());
-    
   }
+}
+
+function SEND_MESSAGE(_type, _data = "yes") {
+  // _data = {'data': _data, 't_created': Date.now()};
+  DATABASE.ref(FIREBASE_DIRECTORY + _type).set(_data);
+}
+
+function LISTEN(_type, callback) {
+  DATABASE.ref(FIREBASE_DIRECTORY + _type).on("value", (snapshot) =>
+    callback(snapshot.val())
+  );
 }
