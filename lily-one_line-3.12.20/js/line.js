@@ -3,31 +3,35 @@ class Line {
     //this.col = col;
     //this.row = row;
     this.points = [];
+    this.squareTurns = [];
     this.state = state; //"empty", "dot"
   }
-  
-  
-     //check if turn
 
-     checkIfTurn(){
-      if (CELLS[coords].state === "empty") return;
-      if (this.points.indexOf(coords) >= 0) return;
-      
-      if (this.points.length > 0) {
-        const lastCoord = this.points[this.points.length - 1];
-        const lastCell = CELLS[lastCoord];
-        const lastRow = lastCell.row;
-        const lastCol = lastCell.col;
-  
-        let turnRight = lastCol + 1 + "," + lastRow;
-        let turnLeft = lastCol - 1 + "," + lastRow;
-        
-  
-        const hasTurned = [turnRight, turnLeft];
-  
-        // if (hasTurned.indexOf(coords) < 0);
-      }
+  //check if turn
+
+  getSquareTurns() {
+    console.log(this.squareTurns);
+  }
+
+  checkTurn(endCoord) {
+    if (this.points.length <= 1) return;
+    const cell = CELLS[endCoord];
+    const { row, col } = cell;
+
+    const middleCoord = this.points[this.points.length - 1];
+
+    const startCoord = this.points[this.points.length - 2];
+    const startCell = CELLS[startCoord];
+    const startRow = startCell.row;
+    const startCol = startCell.col;
+
+    
+
+    if (col !== startCol && row !== startRow) {
+      this.squareTurns.push(middleCoord);
+      console.log('has turned');
     }
+  }
 
   tryAddPoint(posX, posY) {
     let coords = getCoordsWithPosition(posX, posY);
@@ -47,6 +51,7 @@ class Line {
     // prevent diagonal movement
     if (this.points.length > 0) {
       const lastCoord = this.points[this.points.length - 1];
+
       const lastCell = CELLS[lastCoord];
       const lastRow = lastCell.row;
       const lastCol = lastCell.col;
@@ -58,18 +63,19 @@ class Line {
 
       const possibleMoves = [upCoords, downCoords, leftCoords, rightCoords];
 
+
       if (possibleMoves.indexOf(coords) < 0) return;
     }
     //check if turn
-    checkIfTurn();
 
+    this.checkTurn(coords);
     this.points.push(coords);
+    // this.getSquareTurns();
   }
-
- 
 
   empty() {
     this.points.length = 0;
+    this.squareTurns.length = 0;
   }
 
   display() {
@@ -88,5 +94,3 @@ class Line {
     pop();
   }
 }
-
-

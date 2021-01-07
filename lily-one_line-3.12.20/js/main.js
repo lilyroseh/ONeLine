@@ -23,30 +23,51 @@ function setup() {
   let player1Btn = createButton("Player 1");
   let player2Btn = createButton("Player 2");
   player1Btn.position(windowWidth * 0.33);
-  player1Btn.style('border-style', 'none');
-  player1Btn.style( 'border-radius', '5');
+  player1Btn.style("border-style", "none");
+  player1Btn.style("border-radius", "5");
   player2Btn.position(windowWidth * 0.66);
 
-
-  player1Btn.mousePressed(() => {
+  player1Btn.elt.onclick = () => {
     IS_PLAYER1 = true;
     player2Btn.hide();
     SEND_MESSAGE("players/player1/ready", true);
-  });
+  };
 
-  player2Btn.mousePressed(() => {
+  player2Btn.elt.onclick = () => {
     player1Btn.hide();
     SEND_MESSAGE("players/player2/ready", true);
-  });
+  };
+
+  let hash = window.location.hash.replace("#", "");
+  if (hash === "player1") {
+    player1Btn.elt.click();
+  } else if (hash === "player2") {
+    player2Btn.elt.click();
+  }
+
+  //
 
   LISTEN("players", (data) => {
+
+    console.log(JSON.stringify(data))
+
+    if(!data.player1.ready && READY_TO_PLAY || !data.player2.ready && READY_TO_PLAY) {
+      location.reload();
+    }
+
     if (data.player1.ready) player1Btn.hide();
 
-    if (data.player2.ready) player2Btn.hide();
+    if (data.player2.ready) {
+      player2Btn.hide();
+    }
 
-    if (data.player1.ready && data.player2.ready && IS_PLAYER1) {
-      SEND_MESSAGE("level/drawer", "player1");
-      SEND_MESSAGE("level/number", CURR_LEVEL);
+    if (data.player1.ready && data.player2.ready) {
+      window.location.hash = IS_PLAYER1 ? "player1" : "player2";
+
+      if (IS_PLAYER1) {
+        SEND_MESSAGE("level/drawer", "player1");
+        SEND_MESSAGE("level/number", CURR_LEVEL);
+      }
     }
   });
 
@@ -57,18 +78,15 @@ function setup() {
       console.log("READY TO PLAY");
     }
 
-    if(IS_PLAYER1 && data.drawer === "player1") {
+    if (IS_PLAYER1 && data.drawer === "player1") {
       IS_DRAWER = true;
     }
   });
 
   LISTEN("line", (data) => {
+    if (!READY_TO_PLAY) return;
 
-    if(!READY_TO_PLAY)
-      return;
-
-    if(!IS_DRAWER)
-      GUESS_POINTS = data.points;
+    if (!IS_DRAWER) GUESS_POINTS = data.points;
   });
   // //   mapGRID(map1);
   // GRID.buildGRID(4, 3);
@@ -106,7 +124,6 @@ function mousePressed() {
 
   LINE.tryAddPoint(mouseX, mouseY);
   SEND_MESSAGE("line/points", LINE.points);
-  
 }
 
 function mouseDragged() {
@@ -124,10 +141,9 @@ function mouseReleased() {
   //   } else {
   //     LINE.empty();
   //   }
-  LINE.checkIfTurn();
-  
+  LINE.getSquareTurns();
 
-  //fadeOut();
+  // fadeOut();
 }
 
 function fadeOut() {
@@ -150,7 +166,6 @@ function fadeOut() {
     // draw state "turn"
     if (LINE.points.indexOf(coords) == LINE.points.hasTurned) {
       cell.state = "turn";
-
     }
   }
 
