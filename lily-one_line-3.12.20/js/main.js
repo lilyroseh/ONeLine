@@ -124,8 +124,10 @@ function mouseReleased() {
   //   } else {
   //     LINE.empty();
   //   }
+  LINE.checkIfTurn();
+  
 
-  fadeOut();
+  //fadeOut();
 }
 
 function fadeOut() {

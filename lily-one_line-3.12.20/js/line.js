@@ -7,6 +7,27 @@ class Line {
   }
   
   
+     //check if turn
+
+     checkIfTurn(){
+      if (CELLS[coords].state === "empty") return;
+      if (this.points.indexOf(coords) >= 0) return;
+      
+      if (this.points.length > 0) {
+        const lastCoord = this.points[this.points.length - 1];
+        const lastCell = CELLS[lastCoord];
+        const lastRow = lastCell.row;
+        const lastCol = lastCell.col;
+  
+        let turnRight = lastCol + 1 + "," + lastRow;
+        let turnLeft = lastCol - 1 + "," + lastRow;
+        
+  
+        const hasTurned = [turnRight, turnLeft];
+  
+        // if (hasTurned.indexOf(coords) < 0);
+      }
+    }
 
   tryAddPoint(posX, posY) {
     let coords = getCoordsWithPosition(posX, posY);
@@ -40,23 +61,12 @@ class Line {
       if (possibleMoves.indexOf(coords) < 0) return;
     }
     //check if turn
-    if (this.points.length > 0) {
-      const lastCoord = this.points[this.points.length - 1];
-      const lastCell = CELLS[lastCoord];
-      const lastRow = lastCell.row;
-      const lastCol = lastCell.col;
-
-      let turnRight = lastCol + 1 + "," + lastRow;
-      let turnLeft = lastCol - 1 + "," + lastRow;
-      
-
-      const hasTurned = [turnRight, turnLeft];
-
-      // if (hasTurned.indexOf(coords) < 0);
-    }
+    checkIfTurn();
 
     this.points.push(coords);
   }
+
+ 
 
   empty() {
     this.points.length = 0;
