@@ -23,7 +23,10 @@ function setup() {
   let player1Btn = createButton("Player 1");
   let player2Btn = createButton("Player 2");
   player1Btn.position(windowWidth * 0.33);
+  player1Btn.style('border-style', 'none');
+  player1Btn.style( 'border-radius', '5');
   player2Btn.position(windowWidth * 0.66);
+
 
   player1Btn.mousePressed(() => {
     IS_PLAYER1 = true;
@@ -51,7 +54,7 @@ function setup() {
     if (data.number !== false) {
       GRID.buildGRID(4, 3);
       READY_TO_PLAY = true;
-      // console.log("READY TO PLAY");
+      console.log("READY TO PLAY");
     }
 
     if(IS_PLAYER1 && data.drawer === "player1") {
