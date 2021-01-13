@@ -10,7 +10,8 @@ class Line {
   //check if turn
 
   getSquareTurns() {
-    console.log(this.squareTurns);
+    
+    console.log(this.squareTurns, "is a turning point");
   }
 
   checkTurn(endCoord) {

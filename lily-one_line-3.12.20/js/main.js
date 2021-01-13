@@ -104,6 +104,17 @@ function draw() {
   if (!READY_TO_PLAY) return;
 
   background(222, 235, 235);
+
+  // if (!IS_DRAWER){
+  //   textSize(300);
+  //   fill(0, 102, 153);
+  //   text('wait for your opponent', windowWidth/2, windowHeight/2);
+  //   GRID.
+  // }
+
+  if (IS_DRAWER){
+    background("green");
+  }
   noStroke();
 
   for (let [coords, cell] of Object.entries(CELLS)) {
@@ -118,6 +129,15 @@ function draw() {
 
   if (cell) cell.display();
 }
+
+
+// send() {
+//   console.log("do send");
+//   SEND_MESSAGE("ONELINE/", {
+//     n_clicks: this.n_clicks++,
+//     id: this.ID,
+//   });
+// }
 
 function mousePressed() {
   if (!READY_TO_PLAY || !IS_DRAWER) return;
@@ -135,14 +155,17 @@ function mouseDragged() {
 
 function mouseReleased() {
   if (!READY_TO_PLAY || !IS_DRAWER) return;
-  //   if (LINE.points.length === getNDotCells()) {
-  //     console.log("YOU WON");
-  //     LINE.fadeOut();
-  //   } else {
-  //     LINE.empty();
-  //   }
-  LINE.getSquareTurns();
 
+  LINE.getSquareTurns();
+  SEND_MESSAGE("line/squareTurns", LINE.squareTurns);
+  pointColor();
+
+  if(!IS_DRAWER){
+    IS_DRAWER
+  } else {
+    !IS_DRAWER
+  }
+  
   // fadeOut();
 }
 
@@ -151,11 +174,16 @@ function fadeOut() {
     LINE.empty();
     return;
   }
-
   for (let [coords, cell] of Object.entries(CELLS)) {
     if (LINE.points.indexOf(coords) < 0) {
       cell.state = "empty";
     }
+  }
+  LINE.empty();
+}
+
+function pointColor(){
+  for (let [coords, cell] of Object.entries(CELLS)) {
 
     if (LINE.points.indexOf(coords) == 0) {
       cell.state = "start";
@@ -163,21 +191,29 @@ function fadeOut() {
     if (LINE.points.indexOf(coords) == LINE.points.length - 1) {
       cell.state = "finish";
     }
-    // draw state "turn"
-    if (LINE.points.indexOf(coords) == LINE.points.hasTurned) {
-      cell.state = "turn";
-    }
+    // draw state "turn"///////////////////////////////////////////
+    // if (LINE.squareTurns.indexOf(coords) == LINE.squareTurns.length-2) {
+    //   cell.state = "turn";
+    // }
+    LINE.squareTurns.forEach((item)=>{
+      console.log(item,coords);
+      if(item == coords){
+        cell.state = "turn";
+      }
+    });
+    console.log("***")
   }
 
-  LINE.empty();
+  // LINE.empty();
 }
 
 function getTheGrid(data) {
+  console.log("getTheGrid")
   if (this.ID != data.id) {
     this.GRID.nColumns = data.nColumns;
     this.GRID.nRows = data.nRows;
-
-    fadeOut();
+    SEND_MESSAGE("line/points", pointColor());
+    //fadeOut();
     //console.log("ball Y" + this.ball.y + " ball speedX " + this.ball.speedX);
 
     if (this.ID == 1) {
@@ -188,6 +224,11 @@ function getTheGrid(data) {
   }
 }
 
+// function getTheLine(data) {
+// if
+
+// }
+
 function onValueChanged(snapshot) {
   if (!this.appHasStarted) {
     this.appHasStarted = true;
@@ -196,7 +237,7 @@ function onValueChanged(snapshot) {
     console.log(database);
   } else {
     let database = snapshot.val();
-    console.log(database);
+    console.log("hallo funktioniert da???");
     this.getTheGrid(database);
     //console.log("snapshot", snapshot.val());
   }

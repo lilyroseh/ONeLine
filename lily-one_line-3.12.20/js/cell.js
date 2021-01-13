@@ -31,6 +31,12 @@ class Cell {
       ellipse(pos.x, pos.y, GRID.pointDiameter);
       
 
+    } else if (this.state === "wait"){
+      let pos = this.getPosition();
+      fill(random(190), random(92), random(247));
+      ellipse(pos.x, pos.y, GRID.pointDiameter);
+      
+
     }
   }
 
