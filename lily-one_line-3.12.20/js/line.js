@@ -2,7 +2,8 @@ class Line {
   constructor(state) {
     //this.col = col;
     //this.row = row;
-    this.points = [];
+    this.points = []; // cell
+    this.cells = [];
     this.squareTurns = [];
     this.state = state; //"empty", "dot"
   }
@@ -71,6 +72,7 @@ class Line {
 
     this.checkTurn(coords);
     this.points.push(coords);
+    this.cells.push(CELLS[coords])
     // this.getSquareTurns();
   }
 

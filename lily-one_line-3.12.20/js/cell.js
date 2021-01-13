@@ -7,37 +7,27 @@ class Cell {
   }
 
   display() {
-    if (this.state === "dot") {
-      let pos = this.getPosition();
-      fill(150);
-      ellipse(pos.x, pos.y, GRID.pointDiameter);
-     
-    } else if (this.state === "empty") {
+    let pos = this.getPosition();
 
-    } else if (this.state === "start"){
-      let pos = this.getPosition();
-      fill(20);
-      ellipse(pos.x, pos.y, GRID.pointDiameter);
-
-    } else if (this.state === "finish"){
-      let pos = this.getPosition();
-      fill(20);
-      ellipse(pos.x, pos.y, GRID.pointDiameter);
-      
-
-    } else if (this.state === "turn"){
-      let pos = this.getPosition();
-      fill(190, 92, 247);
-      ellipse(pos.x, pos.y, GRID.pointDiameter);
-      
-
-    } else if (this.state === "wait"){
-      let pos = this.getPosition();
-      fill(random(190), random(92), random(247));
-      ellipse(pos.x, pos.y, GRID.pointDiameter);
-      
-
+    switch (this.state) {
+      case "dot":
+        fill(150);
+        break;
+      case "empty":
+        break;
+      case "start":
+      case "finish":
+        fill(20);
+        break;
+      case "turn":
+        fill(190, 92, 247);
+        break;
+      case "wait":
+        fill(random(190), random(92), random(247));
+        break;
     }
+
+    ellipse(pos.x, pos.y, GRID.pointDiameter);
   }
 
   addPoint() {
