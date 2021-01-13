@@ -9,14 +9,17 @@ class Cell {
   display() {
     let pos = this.getPosition();
 
+    fill(150);
+
+    // if(GAME_STATE === 'guess') {
+
+    // }
+
     switch (this.state) {
-      case "dot":
-        fill(150);
-        break;
       case "empty":
         break;
-      case "start":
-      case "finish":
+      // case "start":
+      case "end":
         fill(20);
         break;
       case "turn":

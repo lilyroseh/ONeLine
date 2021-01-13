@@ -16,6 +16,8 @@ let IS_DRAWER = false;
 let CURR_LEVEL = 0;
 let READY_TO_PLAY = false;
 
+let GAME_STATE = 'draw' //draw, guess, win/lose
+
 function setup() {
   LINE = new Line();
   createCanvas(windowWidth, windowHeight);
@@ -73,6 +75,14 @@ function setup() {
     }
   });
 
+  LISTEN("line/points", (points) => {
+    if (!READY_TO_PLAY || IS_DRAWER) return;
+    drawLine(points)
+    // console.log(READY_TO_PLAY)
+
+    // if (!IS_DRAWER) GUESS_POINTS = data.points;
+  });
+
   LISTEN("level", (data) => {
     if (data.number !== false) {
       GRID.buildGRID(4, 3);
@@ -85,13 +95,7 @@ function setup() {
     }
   });
 
-  LISTEN("line/points", (points) => {
-    if (!READY_TO_PLAY || !IS_DRAWER) return;
-    
-    drawLine(points);
-
-    // if (!IS_DRAWER) GUESS_POINTS = data.points;
-  });
+  
   // //   mapGRID(map1);
   // GRID.buildGRID(4, 3);
   // this.appHasStarted = false;
@@ -106,6 +110,7 @@ window.addEventListener("beforeunload", function (event) {
 });
 
 function drawLine(points = []) {
+  console.log('draaww')
   points.forEach(({ coords, state }) => {
     CELLS[coords].state = state;
   });
@@ -165,7 +170,8 @@ function mouseReleased() {
   if (!READY_TO_PLAY || !IS_DRAWER) return;
 
   LINE.getSquareTurns();
-  pointColor();
+
+  GAME_STATE = 'guess'
 
   SEND_MESSAGE("line/points", LINE.cells);
 
@@ -185,36 +191,11 @@ function fadeOut() {
   LINE.empty();
 }
 
-function pointColor() {
-  for (let [coords, cell] of Object.entries(CELLS)) {
-    if (LINE.points.indexOf(coords) == 0) {
-      cell.state = "start";
-    }
-    if (LINE.points.indexOf(coords) == LINE.points.length - 1) {
-      cell.state = "finish";
-    }
-    // draw state "turn"///////////////////////////////////////////
-    // if (LINE.squareTurns.indexOf(coords) == LINE.squareTurns.length-2) {
-    //   cell.state = "turn";
-    // }
-    LINE.squareTurns.forEach((item) => {
-      console.log(item, coords);
-      if (item == coords) {
-        cell.state = "turn";
-      }
-    });
-    console.log("***");
-  }
-
-  // LINE.empty();
-}
-
 function getTheGrid(data) {
   console.log("getTheGrid");
   if (this.ID != data.id) {
     this.GRID.nColumns = data.nColumns;
     this.GRID.nRows = data.nRows;
-    // SEND_MESSAGE("line/points", pointColor());
     //fadeOut();
     //console.log("ball Y" + this.ball.y + " ball speedX " + this.ball.speedX);
 
