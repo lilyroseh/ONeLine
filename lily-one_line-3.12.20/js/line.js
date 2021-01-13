@@ -1,36 +1,32 @@
 class Line {
   constructor(state) {
-    //this.col = col;
-    //this.row = row;
-    this.points = [];
+    this.cells = [];
     this.squareTurns = [];
     this.state = state; //"empty", "dot"
   }
 
-  //check if turn
-
   getSquareTurns() {
-    
     console.log(this.squareTurns, "is a turning point");
   }
 
   checkTurn(endCoord) {
-    if (this.points.length <= 1) return;
+    if (this.cells.length <= 1) return;
     const cell = CELLS[endCoord];
     const { row, col } = cell;
 
-    const middleCoord = this.points[this.points.length - 1];
+    const middleCoord = this.cells[this.cells.length - 1].coords;
+    const startCell = this.cells[this.cells.length - 2];
 
-    const startCoord = this.points[this.points.length - 2];
-    const startCell = CELLS[startCoord];
+    const startCoord = startCell.coords;
     const startRow = startCell.row;
     const startCol = startCell.col;
 
-    
-
     if (col !== startCol && row !== startRow) {
       this.squareTurns.push(middleCoord);
-      console.log('has turned');
+      CELLS[middleCoord].state = "turn";
+      console.log("has turned");
+    } else {
+      CELLS[middleCoord].state = "dot";
     }
   }
 
@@ -45,13 +41,15 @@ class Line {
 
     coords = col + "," + row;
 
-    if (CELLS[coords].state === "empty") return;
+    let cell = CELLS[coords];
 
-    if (this.points.indexOf(coords) >= 0) return;
+    if (cell.state === "empty") return;
+
+    if (this.cells.indexOf(cell) >= 0) return;
 
     // prevent diagonal movement
-    if (this.points.length > 0) {
-      const lastCoord = this.points[this.points.length - 1];
+    if (this.cells.length > 0) {
+      const lastCoord = this.cells[this.cells.length - 1].coords;
 
       const lastCell = CELLS[lastCoord];
       const lastRow = lastCell.row;
@@ -64,18 +62,20 @@ class Line {
 
       const possibleMoves = [upCoords, downCoords, leftCoords, rightCoords];
 
-
       if (possibleMoves.indexOf(coords) < 0) return;
     }
     //check if turn
 
     this.checkTurn(coords);
-    this.points.push(coords);
+    let selectedCell = cell;
+    selectedCell.state = "end"; // start of finish point
+
+    this.cells.push(selectedCell);
     // this.getSquareTurns();
   }
 
   empty() {
-    this.points.length = 0;
+    this.cells.length = 0;
     this.squareTurns.length = 0;
   }
 
@@ -86,8 +86,8 @@ class Line {
     stroke(80);
     beginShape();
 
-    for (let coords of this.points) {
-      let pos = CELLS[coords].getPosition();
+    for (let cell of this.cells) {
+      let pos = cell.getPosition();
       vertex(pos.x, pos.y);
     }
 

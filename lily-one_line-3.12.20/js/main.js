@@ -16,6 +16,8 @@ let IS_DRAWER = false;
 let CURR_LEVEL = 0;
 let READY_TO_PLAY = false;
 
+let GAME_STATE = 'draw' //draw, guess, win/lose
+
 function setup() {
   LINE = new Line();
   createCanvas(windowWidth, windowHeight);
@@ -48,10 +50,12 @@ function setup() {
   //
 
   LISTEN("players", (data) => {
+    console.log(JSON.stringify(data));
 
-    console.log(JSON.stringify(data))
-
-    if(!data.player1.ready && READY_TO_PLAY || !data.player2.ready && READY_TO_PLAY) {
+    if (
+      (!data.player1.ready && READY_TO_PLAY) ||
+      (!data.player2.ready && READY_TO_PLAY)
+    ) {
       location.reload();
     }
 
@@ -71,6 +75,14 @@ function setup() {
     }
   });
 
+  LISTEN("line/points", (points) => {
+    if (!READY_TO_PLAY || IS_DRAWER) return;
+    drawLine(points)
+    // console.log(READY_TO_PLAY)
+
+    // if (!IS_DRAWER) GUESS_POINTS = data.points;
+  });
+
   LISTEN("level", (data) => {
     if (data.number !== false) {
       GRID.buildGRID(4, 3);
@@ -83,11 +95,7 @@ function setup() {
     }
   });
 
-  LISTEN("line", (data) => {
-    if (!READY_TO_PLAY) return;
-
-    if (!IS_DRAWER) GUESS_POINTS = data.points;
-  });
+  
   // //   mapGRID(map1);
   // GRID.buildGRID(4, 3);
   // this.appHasStarted = false;
@@ -97,8 +105,16 @@ window.addEventListener("beforeunload", function (event) {
   // event.returnValue="";
   SEND_MESSAGE("players/player1/ready", false);
   SEND_MESSAGE("level/number", false);
+  SEND_MESSAGE("line/points", []);
   SEND_MESSAGE("players/player2/ready", false);
 });
+
+function drawLine(points = []) {
+  console.log('draaww')
+  points.forEach(({ coords, state }) => {
+    CELLS[coords].state = state;
+  });
+}
 
 function draw() {
   if (!READY_TO_PLAY) return;
@@ -112,7 +128,7 @@ function draw() {
   //   GRID.
   // }
 
-  if (IS_DRAWER){
+  if (IS_DRAWER) {
     background("green");
   }
   noStroke();
@@ -130,7 +146,6 @@ function draw() {
   if (cell) cell.display();
 }
 
-
 // send() {
 //   console.log("do send");
 //   SEND_MESSAGE("ONELINE/", {
@@ -143,29 +158,23 @@ function mousePressed() {
   if (!READY_TO_PLAY || !IS_DRAWER) return;
 
   LINE.tryAddPoint(mouseX, mouseY);
-  SEND_MESSAGE("line/points", LINE.points);
 }
 
 function mouseDragged() {
   if (!READY_TO_PLAY || !IS_DRAWER) return;
 
   LINE.tryAddPoint(mouseX, mouseY);
-  SEND_MESSAGE("line/points", LINE.points);
 }
 
 function mouseReleased() {
   if (!READY_TO_PLAY || !IS_DRAWER) return;
 
   LINE.getSquareTurns();
-  SEND_MESSAGE("line/squareTurns", LINE.squareTurns);
-  pointColor();
 
-  if(!IS_DRAWER){
-    IS_DRAWER
-  } else {
-    !IS_DRAWER
-  }
-  
+  GAME_STATE = 'guess'
+
+  SEND_MESSAGE("line/points", LINE.cells);
+
   // fadeOut();
 }
 
@@ -182,37 +191,11 @@ function fadeOut() {
   LINE.empty();
 }
 
-function pointColor(){
-  for (let [coords, cell] of Object.entries(CELLS)) {
-
-    if (LINE.points.indexOf(coords) == 0) {
-      cell.state = "start";
-    }
-    if (LINE.points.indexOf(coords) == LINE.points.length - 1) {
-      cell.state = "finish";
-    }
-    // draw state "turn"///////////////////////////////////////////
-    // if (LINE.squareTurns.indexOf(coords) == LINE.squareTurns.length-2) {
-    //   cell.state = "turn";
-    // }
-    LINE.squareTurns.forEach((item)=>{
-      console.log(item,coords);
-      if(item == coords){
-        cell.state = "turn";
-      }
-    });
-    console.log("***")
-  }
-
-  // LINE.empty();
-}
-
 function getTheGrid(data) {
-  console.log("getTheGrid")
+  console.log("getTheGrid");
   if (this.ID != data.id) {
     this.GRID.nColumns = data.nColumns;
     this.GRID.nRows = data.nRows;
-    SEND_MESSAGE("line/points", pointColor());
     //fadeOut();
     //console.log("ball Y" + this.ball.y + " ball speedX " + this.ball.speedX);
 
@@ -253,3 +236,4 @@ function LISTEN(_type, callback) {
     callback(snapshot.val())
   );
 }
+
